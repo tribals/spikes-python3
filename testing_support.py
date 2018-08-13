@@ -4,7 +4,9 @@ import threading
 
 class PropagatingThread(threading.Thread):
     def __init__(self, group=None, target=None, name=None, args=tuple(), kwargs=dict()):
-        super().__init__(group=group, target=target, name=name, args=args, kwargs=kwargs)
+        super().__init__(
+            group=group, target=target, name=name, args=args, kwargs=kwargs
+        )
         self.ex = None
         self.tb = None
 
@@ -16,5 +18,6 @@ class PropagatingThread(threading.Thread):
 
     def join(self):
         super().join()
+
         if self.ex:
             raise self.ex.with_traceback(self.tb)

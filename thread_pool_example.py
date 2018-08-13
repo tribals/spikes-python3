@@ -8,7 +8,7 @@ import time
 from queue import Queue
 
 
-sentinel = object() # guaranteed to be unique
+sentinel = object()  # guaranteed to be unique
 
 
 def watcher(queue, event):
@@ -76,10 +76,18 @@ class Service(object):
         self._threads.add(th)
 
     def start(self):
-        self._run(threading.Thread(target=watcher, args=(self._queue, self._event), name='Watcher'))
+        self._run(
+            threading.Thread(
+                target=watcher, args=(self._queue, self._event), name='Watcher'
+            )
+        )
 
         for n in range(self._nthreads):
-            self._run(threading.Thread(target=worker, args=(self._queue, n), name=f'Worker-{n}'))
+            self._run(
+                threading.Thread(
+                    target=worker, args=(self._queue, n), name=f'Worker-{n}'
+                )
+            )
 
         self._run(threading.Thread(target=failer, args=(self._timeout,), name='Failer'))
         self._run(threading.Thread(target=monitor, args=(self._event,), name='Monitor'))
@@ -100,8 +108,22 @@ class Service(object):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--threads', default=3, type=int, help='number of threads to run', metavar='N')
-    parser.add_argument('-t', '--timeout', default=10, type=int, help='interval after which "failer" should fail', metavar='T')
+    parser.add_argument(
+        '-n',
+        '--threads',
+        default=3,
+        type=int,
+        help='number of threads to run',
+        metavar='N',
+    )
+    parser.add_argument(
+        '-t',
+        '--timeout',
+        default=10,
+        type=int,
+        help="interval after which 'failer' should fail",
+        metavar='T',
+    )
 
     args = parser.parse_args()
 
@@ -110,6 +132,7 @@ def main():
 
     print("Let's roll! Hit ^C to exit.")
     svc.start()
+
 
 if __name__ == '__main__':
     main()

@@ -1,17 +1,16 @@
 import logging
 import threading
 import time
+import uuid
 
 import pytest
 from sqlalchemy import create_engine, inspect, Column, ForeignKey, Integer, String, true
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
 from testing_support import PropagatingThread
 
-
-# logging.basicConfig(level=logging.DEBUG)
-logging.getLogger('sqlalchemy').setLevel(logging.INFO)
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +35,12 @@ class Aught(Base):
     thing_id = Column(Integer, ForeignKey('things.id'))
 
 
+class UuidThing(Base):
+    __tablename__ = 'uuid_things'
+
+    uid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+
 @pytest.fixture(scope='session')
 def engine():
     # engine = create_engine('sqlite:///')
@@ -43,14 +48,14 @@ def engine():
     Base.metadata.create_all(engine)
 
     yield engine
-    
+
     Base.metadata.drop_all(engine)
 
 
 @pytest.fixture
 def connection(engine):
     with engine.connect() as conn:
-        transaction = connection.begin()
+        transaction = conn.begin()
 
         yield conn
 
@@ -60,7 +65,7 @@ def connection(engine):
 @pytest.fixture
 def make_db(connection):
     factory = sessionmaker(bind=connection)
-    
+
     yield factory
 
     factory.close_all()
@@ -84,7 +89,7 @@ def test_select_for_update(engine):
         sess = sess_factory()
         # thing = sess.query(Thing).get(1)
         thing = sess.query(Thing).with_for_update().get(t_id)
-        event.set() # poke second thread
+        event.set()  # poke second thread
         log.debug('Make him wait for a while')
         time.sleep(0.263)
         thing.status = status
@@ -93,7 +98,7 @@ def test_select_for_update(engine):
         # sess_factory.remove()
 
     def second(event, sess_factory, t_id, status):
-        event.wait() # ensure we are called in the right moment
+        event.wait()  # ensure we are called in the right moment
         sess = sess_factory()
         # thing = sess.query(Thing).get(1)
         thing = sess.query(Thing).with_for_update().get(t_id)
@@ -129,14 +134,14 @@ def test_orm_expire_in_other_session(make_db):
     db = make_db()
     thing = Thing()
     db.add(thing)
-    db.commit() # expired
+    db.commit()  # expired
 
     another_db = make_db()
     same_thing = another_db.query(Thing).get(thing.id)
     same_thing.status = 'updated_in_other_session'
     another_db.commit()
 
-    db.refresh(thing) # must refresh to get updated data
+    db.refresh(thing)  # must refresh to get updated data
     assert thing.status == 'updated_in_other_session'
 
 
@@ -157,7 +162,11 @@ def test_scalar(db):
     db.commit()
 
     res = db.query(true()).one()
-    # res = db.query(true()).scalar()
+
+    assert res == (True,)
+
+    # doing it right
+    res = db.query(true()).scalar()
 
     assert res is True
 
@@ -173,3 +182,16 @@ def test_commiting_relationship(db):
     db.commit()
 
     assert db.query(Thing).get(thing.id).aughts == aughts
+
+
+def test_thing_with_uuid_primary_key(db):
+    thing = UuidThing()
+
+    db.add(thing)
+    db.commit()
+
+    assert thing.uid
+
+    thing = db.query(UuidThing).get(thing.uid)
+
+    assert type(thing.uid) is uuid.UUID

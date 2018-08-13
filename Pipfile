@@ -7,10 +7,12 @@ name = "pypi"
 waitress = "*"
 SQLAlchemy = "*"
 "psycopg2-binary" = "*"
+celery = "*"
 
 [dev-packages]
 pytest = "*"
 pytest-repeat = "*"
+pytest-mock = "*"
 
 [requires]
 python_version = "3.6"

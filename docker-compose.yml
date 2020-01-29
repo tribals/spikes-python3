@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:12.1-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - spikes-python3-pg-data:/var/lib/postgresql/data
+
+volumes:
+  spikes-python3-pg-data:
+    external: true

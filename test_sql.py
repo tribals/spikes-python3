@@ -44,7 +44,7 @@ class UuidThing(Base):
 @pytest.fixture(scope='session')
 def engine():
     # engine = create_engine('sqlite:///')
-    engine = create_engine('postgresql+psycopg2://spikes:sesame@localhost/spikes')
+    engine = create_engine('postgresql+psycopg2://spikes-python3:sesame@localhost/spikes-python3')
     Base.metadata.create_all(engine)
 
     yield engine

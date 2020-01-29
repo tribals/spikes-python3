@@ -6,14 +6,14 @@ authors = ["Anthony <burning2007@ya.ru>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
-psycopg2 = "^2.8.4"
-waitress = "^1.4.2"
-sqlalchemy = "^1.3.13"
+python = "~3.8"
+psycopg2 = "~2.8"
+waitress = "~1.4"
+sqlalchemy = "~1.3"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.3.4"
-pytest-asyncio = "^0.10.0"
+pytest = "~5.3"
+pytest-asyncio = "~0.10"
 
 [build-system]
 requires = ["poetry>=0.12"]
